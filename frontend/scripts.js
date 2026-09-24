@@ -1,37 +1,49 @@
+// Get the form
 const form = document.getElementById("predictionForm");
 
+
+// Get the price display element
 const priceElement = document.getElementById("price");
 
 
+// When the form is submitted
 form.addEventListener("submit", async function(event) {
 
-    // Stop page from refreshing
+    // Prevent page refresh
     event.preventDefault();
 
 
-    // Get values from HTML inputs
+    // Get area
     const area = Number(
         document.getElementById("area").value
     );
 
+
+    // Get bedrooms
     const bedrooms = Number(
         document.getElementById("bedrooms").value
     );
 
+
+    // Get bathrooms
     const bathrooms = Number(
         document.getElementById("bathrooms").value
     );
 
+
+    // Get stories
     const stories = Number(
         document.getElementById("stories").value
     );
 
+
+    // Get parking
     const parking = Number(
         document.getElementById("parking").value
     );
 
 
-    // Create data object
+    // Create house data object
     const houseData = {
 
         area: area,
@@ -50,7 +62,7 @@ form.addEventListener("submit", async function(event) {
 
         // Send data to FastAPI
         const response = await fetch(
-            "http://127.0.0.1:8000/predict",
+            "/predict",
             {
                 method: "POST",
 
@@ -63,17 +75,19 @@ form.addEventListener("submit", async function(event) {
         );
 
 
-        // Convert response into JSON
+        // Convert response to JSON
         const result = await response.json();
 
 
         // Display predicted price
         priceElement.textContent =
-            "₹ " + result.predicted_price.toLocaleString("en-IN");
+            "₹ " +
+            result.predicted_price.toLocaleString("en-IN");
 
 
     } catch (error) {
 
+        // Display error
         console.error(error);
 
         priceElement.textContent =

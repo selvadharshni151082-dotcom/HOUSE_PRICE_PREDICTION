@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
@@ -19,12 +21,27 @@ app.add_middleware(
 )
 
 
-# Find model file
+# Find project folder
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Find model file
 MODEL_PATH = BASE_DIR / "model" / "house_price_model.pkl"
 
 
-# Load trained model
+# Find frontend folder
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+
+# Serve frontend files
+app.mount(
+    "/static",
+    StaticFiles(directory=FRONTEND_DIR),
+    name="static"
+)
+
+
+# Load trained machine learning model
 model = joblib.load(MODEL_PATH)
 
 
@@ -37,18 +54,19 @@ class HouseData(BaseModel):
     parking: int
 
 
-# Home route
+# Home page
 @app.get("/")
 def home():
-    return {
-        "message": "House Price Prediction API is running"
-    }
+    return FileResponse(
+        FRONTEND_DIR / "index.html"
+    )
 
 
 # Prediction API
 @app.post("/predict")
 def predict_price(house: HouseData):
 
+    # Prepare input data
     input_data = [[
         house.area,
         house.bedrooms,
@@ -57,9 +75,16 @@ def predict_price(house: HouseData):
         house.parking
     ]]
 
+
+    # Make prediction
     prediction = model.predict(input_data)
 
+
+    # Get predicted price
     predicted_price = prediction[0]
+
+
+    # Return prediction
     return {
         "predicted_price": round(predicted_price, 2)
     }
